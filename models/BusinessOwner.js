@@ -29,12 +29,28 @@ const BusinessOwnerSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    trialAlertSent: {
+      type: Boolean,
+      default: false,
+    },
+    expiredAlertSent: {
+      type: Boolean,
+      default: false,
+    },
     trialEndsAt: {
       type: Date,
       default: () => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     },
     paidUntil: {
       type: Date,
+      default: null,
+    },
+    adminPhoneId: {
+      type: String,
+      default: null,
+    },
+    adminAccessToken: {
+      type: String,
       default: null,
     },
     businessId: {

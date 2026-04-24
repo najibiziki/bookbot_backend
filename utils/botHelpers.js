@@ -2,7 +2,7 @@ function getServiceOptions(business) {
   return business.services.map((s) => ({
     id: s.id,
     title: s.name,
-    desc: `${s.duration}m - $${s.price}`,
+    desc: `${s.duration} minutes | Base price: $${s.price}`,
   }));
 }
 
@@ -29,7 +29,9 @@ function buildServiceTemplate(business, type) {
 
 async function matchService(text, business) {
   let serviceMatch = business.services.find(
-    (s) => s.id === text || s.name.toLowerCase() === text.toLowerCase(),
+    (s) =>
+      s._id.toString() === text ||
+      s.name.trim().toLowerCase() === text.trim().toLowerCase(),
   );
 
   if (serviceMatch) return serviceMatch;
@@ -55,7 +57,7 @@ async function matchService(text, business) {
 
     if (aiRaw && aiRaw !== "null") {
       serviceMatch = business.services.find(
-        (s) => s.name.toLowerCase() === aiRaw.toLowerCase(),
+        (s) => s.name.trim().toLowerCase() === aiRaw.trim().toLowerCase(),
       );
     }
   } catch (e) {

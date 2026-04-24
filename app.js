@@ -11,10 +11,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(
   cors({
-    origin: [
-      "http://localhost:3000", // Local Development
-      "https://bookbot-rouge.vercel.app", // Vercel Production
-    ],
+    origin: ["http://localhost:3000", "https://bookbot-rouge.vercel.app"],
     credentials: true,
   }),
 );

@@ -1,9 +1,9 @@
 const axios = require("axios");
-
+const API_VERSION = "v21.0";
 const sendMessage = async (phoneId, to, text, accessToken) => {
   try {
     await axios.post(
-      `https://graph.facebook.com/v17.0/${phoneId}/messages`,
+      `https://graph.facebook.com/${API_VERSION}/${phoneId}/messages`,
       {
         messaging_product: "whatsapp",
         to: to,
@@ -62,7 +62,7 @@ async function sendListMessage({
     },
   };
 
-  const url = `https://graph.facebook.com/v19.0/${phoneId}/messages`;
+  const url = `https://graph.facebook.com/${API_VERSION}/${phoneId}/messages`;
 
   await axios.post(url, payload, {
     headers: {

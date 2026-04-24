@@ -43,7 +43,10 @@ module.exports = async function handleStaff({
     session.stage = "AWAITING_DATE";
     session.data.staffId = staffMatch.id;
     session.data.staffName = staffMatch.name;
-
+    const extraTime = staffMatch.extraTime || 0;
+    if (extraTime > 0) {
+      session.data.serviceDuration += extraTime;
+    }
     await sendTranslatedMessage({
       text: `I am ${staffMatch.name}. When works best for you?`,
       business,
@@ -58,11 +61,23 @@ module.exports = async function handleStaff({
     header: "Our Team",
     body: "Who would you like to book with?",
     button: "View Team",
-    options: business.staff.map((s) => ({
-      id: s.id,
-      title: s.name,
-      desc: s.description || "",
-    })),
+    options: business.staff.map((s) => {
+      let desc = s.role || "Staff";
+
+      if (s.price) {
+        desc += ` | Extra fee: +${s.price}`;
+      }
+
+      if (s.extraTime) {
+        desc += ` | Extra time: +${s.extraTime}m`;
+      }
+
+      return {
+        id: s.id,
+        title: s.name,
+        desc: desc.trim(),
+      };
+    }),
   };
 
   const translatedList = await translateList(staffTemplate, lang);

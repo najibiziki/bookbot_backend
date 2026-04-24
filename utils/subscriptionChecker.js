@@ -4,38 +4,26 @@ const BusinessOwner = require("../models/BusinessOwner");
 const checkSubscriptions = () => {
   cron.schedule("0 0 * * *", async () => {
     console.log("⏰ Running Subscription Check...");
-
     const now = new Date();
 
     try {
+      // 1. Turn off trials that are past their date
       const expiredTrials = await BusinessOwner.updateMany(
-        {
-          isOnTrial: true,
-          trialEndsAt: { $lt: now },
-          isActive: true,
-        },
-        {
-          $set: { isActive: false, isOnTrial: false },
-        },
+        { isOnTrial: true, trialEndsAt: { $lt: now } },
+        { $set: { isOnTrial: false } },
       );
       if (expiredTrials.modifiedCount > 0) {
-        console.log(
-          `⚠️ Deactivated ${expiredTrials.modifiedCount} expired trials.`,
-        );
+        console.log(`⚠️ Ended ${expiredTrials.modifiedCount} expired trials.`);
       }
 
+      // 2. Turn off paid subscriptions that are past their date
       const expiredPaid = await BusinessOwner.updateMany(
-        {
-          paidUntil: { $lt: now },
-          isActive: true,
-        },
-        {
-          $set: { isActive: false },
-        },
+        { isActive: true, paidUntil: { $lt: now } },
+        { $set: { isActive: false } },
       );
       if (expiredPaid.modifiedCount > 0) {
         console.log(
-          `⚠️ Deactivated ${expiredPaid.modifiedCount} expired subscriptions.`,
+          `⚠️ Ended ${expiredPaid.modifiedCount} expired paid subscriptions.`,
         );
       }
     } catch (error) {

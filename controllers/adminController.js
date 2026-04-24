@@ -110,13 +110,27 @@ exports.updateOwnerStatus = async (req, res) => {
     const owner = await BusinessOwner.findById(ownerId);
     if (!owner) return res.status(404).json({ message: "Owner not found" });
 
-    if (isActive === true) {
-      owner.isActive = true;
-      if (owner.isOnTrial) owner.isOnTrial = false;
-      const oneMonth = 30 * 24 * 60 * 60 * 1000;
-      owner.paidUntil = new Date(Date.now() + oneMonth);
-    } else {
+    // Handle Payment Status (isActive)
+    if (typeof isActive !== "undefined") {
       owner.isActive = isActive;
+
+      if (isActive === true) {
+        if (owner.isOnTrial) owner.isOnTrial = false;
+        const oneMonth = 30 * 24 * 60 * 60 * 1000;
+        owner.paidUntil = new Date(Date.now() + oneMonth);
+        owner.expiredAlertSent = false; // Reset so they get the message again next month
+      }
+    }
+
+    // Handle Trial Status (isOnTrial)
+    if (typeof isOnTrial !== "undefined") {
+      owner.isOnTrial = isOnTrial;
+
+      if (isOnTrial === true) {
+        const sevenDays = 7 * 24 * 60 * 60 * 1000;
+        owner.trialEndsAt = new Date(Date.now() + sevenDays);
+        owner.trialAlertSent = false; // Reset so they get the trial message again
+      }
     }
 
     await owner.save();

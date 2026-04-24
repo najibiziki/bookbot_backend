@@ -12,6 +12,11 @@ module.exports = async function handleDate({
 }) {
   const tz = business.timezone || "UTC";
   const now = moment().tz(tz);
+
+  // FIX: Added these missing variables for your error messages
+  const currentTime = now.format("HH:mm");
+  const currentDate = now.format("ddd, DD MMM");
+
   if (text.toLowerCase().startsWith("confirm")) {
     return "NEEDS_CONFIRMATION";
   }
@@ -57,6 +62,41 @@ module.exports = async function handleDate({
           session,
         });
       } else {
+        // --- NEW: Smart Reason Detection ---
+        let reasonMsg = "😔 That time is taken.";
+        const requestedDate = moment(timeCheck.date).tz(tz);
+        const requestedDay = requestedDate.format("ddd").toLowerCase();
+        const selectedStaff = business.staff.find(
+          (s) => s.id === session.data.staffId,
+        );
+
+        if (selectedStaff) {
+          // 1. Check if it's a weekly day off
+          if (
+            selectedStaff.weeklyOff &&
+            selectedStaff.weeklyOff.includes(requestedDay)
+          ) {
+            reasonMsg = `😔 ${selectedStaff.name} does not work on ${requestedDate.format("dddd")}s.`;
+          }
+          // 2. Check if it's a vacation period
+          else if (
+            selectedStaff.vacations &&
+            selectedStaff.vacations.length > 0
+          ) {
+            const currentJSDate = requestedDate.toDate();
+            for (const vacation of selectedStaff.vacations) {
+              if (
+                currentJSDate >= vacation.start &&
+                currentJSDate <= vacation.end
+              ) {
+                reasonMsg = `😔 ${selectedStaff.name} is on vacation until ${moment(vacation.end).tz(tz).format("DD MMM")}.`;
+                break;
+              }
+            }
+          }
+        }
+        // ------------------------------------
+
         const suggestions = await findNextAvailableSlots({
           business,
           startDateTime: timeCheck.date,
@@ -73,7 +113,7 @@ module.exports = async function handleDate({
           .join("\n");
 
         await sendTranslatedMessage({
-          text: `😔 That time is taken.\n\nHere are the next slots:\n${slotsList}`,
+          text: `${reasonMsg}\n\nHere are the next available slots:\n${slotsList}`,
           business,
           from,
           phoneId,
@@ -81,6 +121,7 @@ module.exports = async function handleDate({
         });
       }
     } catch (e) {
+      console.error("Availability Error:", e.message);
       await sendTranslatedMessage({
         text: "I'm having trouble finding a time.",
         business,

@@ -11,10 +11,12 @@ const BusinessSchema = new mongoose.Schema(
     phoneId: { type: String, required: false, index: true },
 
     accessToken: { type: String, default: "" },
+
     ownerId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "BusinessOwner",
     },
+
     timezone: {
       type: String,
       default: "UTC",
@@ -46,6 +48,17 @@ const BusinessSchema = new mongoose.Schema(
         name: { type: String, required: true },
         price: { type: Number, default: 0 },
         role: { type: String, default: "" },
+        extraTime: { type: Number, default: 0 },
+        weeklyOff: {
+          type: [String],
+          default: [],
+        },
+        vacations: [
+          {
+            start: { type: Date, required: true },
+            end: { type: Date, required: true },
+          },
+        ],
       },
     ],
 

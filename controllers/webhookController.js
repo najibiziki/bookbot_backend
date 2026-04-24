@@ -18,7 +18,6 @@ exports.verifyWebhook = (req, res) => {
 
 exports.receiveMessage = async (req, res) => {
   const data = req.body;
-  console.log(data);
   res.sendStatus(200);
 
   if (data.object && data.entry) {

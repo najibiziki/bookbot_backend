@@ -60,6 +60,10 @@ const AppointmentSchema = new mongoose.Schema(
       default: "scheduled",
       index: true,
     },
+    totalPrice: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true },
 );

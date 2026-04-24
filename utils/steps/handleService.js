@@ -1,6 +1,6 @@
 const { sendTranslatedMessage, translateList } = require("../translator");
 const { sendListMessage } = require("../../services/whatsappService");
-const { buildServiceTemplate, matchService } = require("../botHelpers");
+const { buildServiceTemplate, matchService } = require("../botHelpers"); // <-- Notice this import!
 
 module.exports = async function handleService({
   text,
@@ -11,11 +11,11 @@ module.exports = async function handleService({
 }) {
   const lang = session.data.lang || "en";
 
-  const serviceMatch = await matchService(text, business);
+  const serviceMatch = await matchService(text, business); // <-- Notice this!
 
   if (serviceMatch) {
     session.data.service = serviceMatch.name;
-    session.data.serviceId = serviceMatch.id;
+    session.data.serviceId = serviceMatch._id.toString(); // SAVES THE ID!
     session.data.serviceDuration = serviceMatch.duration;
 
     if (business.staff && business.staff.length > 0) {
@@ -23,13 +23,18 @@ module.exports = async function handleService({
 
       const staffTemplate = {
         header: "Our Team",
-        body: "Please select a stylist to proceed:",
-        button: "View Stylists",
-        options: business.staff.map((s) => ({
-          id: s.id,
-          title: s.name,
-          desc: s.description || "",
-        })),
+        body: "Please select a team member to proceed:",
+        button: "Team Members",
+        options: business.staff.map((s) => {
+          let desc = (s.role || "Staff").trim();
+          if (s.price) desc += ` | Extra fee: +${s.price}`;
+          if (s.extraTime) desc += ` | Extra time: +${s.extraTime}m`;
+          return {
+            id: s._id.toString(),
+            title: s.name,
+            desc: desc,
+          };
+        }),
       };
 
       const translatedList = await translateList(staffTemplate, lang);
@@ -45,7 +50,6 @@ module.exports = async function handleService({
       });
     } else {
       session.stage = "AWAITING_DATE";
-
       const askDateText = `Perfect! When works for your *${serviceMatch.name}*?`;
       await sendTranslatedMessage({
         text: askDateText,

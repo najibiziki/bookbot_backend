@@ -50,6 +50,40 @@ async function scanAvailabilityTimeline({
     const workingPeriods = await getWorkingPeriods(business, currentDate);
     if (workingPeriods.length === 0) continue;
 
+    let staffUnavailable = false;
+    if (staffId) {
+      const selectedStaff = business.staff.find((s) => s.id === staffId);
+      if (selectedStaff) {
+        if (selectedStaff.weeklyOff && selectedStaff.weeklyOff.length > 0) {
+          const dayName = currentDate.toFormat("ccc").toLowerCase();
+          if (selectedStaff.weeklyOff.includes(dayName)) {
+            staffUnavailable = true;
+          }
+        }
+
+        if (
+          !staffUnavailable &&
+          selectedStaff.vacations &&
+          selectedStaff.vacations.length > 0
+        ) {
+          const currentJSDate = currentDate.toJSDate();
+          for (const vacation of selectedStaff.vacations) {
+            if (
+              currentJSDate >= vacation.start &&
+              currentJSDate <= vacation.end
+            ) {
+              staffUnavailable = true;
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    if (staffUnavailable) {
+      continue;
+    }
+
     const dayStart = currentDate.toJSDate();
     const dayEnd = currentDate.endOf("day").toJSDate();
 
